@@ -6,33 +6,11 @@
 /*   By: rmedina- <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 17:07:06 by rmedina-          #+#    #+#             */
-/*   Updated: 2024/07/29 00:27:21 by rmedina-         ###   ########.fr       */
+/*   Updated: 2024/07/29 14:14:02 by rmedina-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "fractol_header.h"
-
-int	proportional_color(int percentage, int color, int max_color)
-{
-	int	new_t;
-	int	new_r;
-	int	new_g;
-	int	new_b;
-	int	nw_color;
-
-	if (color == max_color)
-		return (color);
-	new_t = proportional_trgb(percentage,
-			color >> 24 & 255, max_color >> 24 & 255);
-	new_r = proportional_trgb(percentage,
-			color >> 16 & 255, max_color >> 16 & 255);
-	new_g = proportional_trgb(percentage,
-			color >> 8 & 255, max_color >> 8 & 255);
-	new_b = proportional_trgb(percentage,
-			color & 255, max_color & 255);
-	nw_color = new_t << 24 | new_r << 16 | new_g << 8 | new_b;
-	return (nw_color);
-}
 
 int	iteration_to_scape(t_position c, t_position z, int iter)
 {
@@ -75,12 +53,23 @@ void	my_mlx_pixel_put(t_img *data, int x, int y, int color)
 	*(unsigned int *)dst = color;
 }
 
-void		draw_mandelbrot(t_fract *vars)
+void	init_var(t_pixel *px, int count, t_fract *vars)
+{
+	if (count != 2147483647)
+	{
+		px->color = proportional_color(count * 1000 / vars->iter,
+				AZUL, TURQUESA);
+	}
+	else
+		px->color = AZUL;
+}
+
+void	draw_mandelbrot(t_fract *vars)
 {
 	t_position	z;
 	t_position	c;
-	t_pixel	px;
-	int		count;
+	t_pixel		px;
+	int			count;
 
 	px.y = 0;
 	px.x = 0;
@@ -93,15 +82,11 @@ void		draw_mandelbrot(t_fract *vars)
 			c = position_in_square(px, vars->matrix);
 			z.real = 0.0;
 			z.im = 0.0;
-				count = iteration_to_scape(c, z, vars->iter);
-				if (count != 2147483647)
-					px.color = proportional_color(
-						count * 1000 / vars->iter, AZUL, TURQUESA);
-				else
-					px.color = AZUL;
-				my_mlx_pixel_put(vars->img_ptr, px.x, px.y, px.color);
-				px.x += 1;
-			}
-			px.y += 1;
+			count = iteration_to_scape(c, z, vars->iter);
+			init_var(&px, count, vars);
+			my_mlx_pixel_put(vars->img_ptr, px.x, px.y, px.color);
+			px.x += 1;
 		}
+		px.y += 1;
+	}
 }
